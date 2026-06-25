@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { RecipeCard } from "./RecipeCard";
 import { Grid, Typography, Pagination, Box } from "@mui/material";
 import { IRecipe } from "../Shared/Types";
@@ -9,19 +8,17 @@ import { useMobileQuery } from "../Shared/Hooks/isMobile";
 interface Props {
   recipes: IRecipe[];
   loading: boolean;
+  page: number;
+  onPageChange: (page: number) => void;
 }
 
-export const RecipeList = ({ loading, recipes }: Props) => {
-  const [page, setPage] = useState(1);
+export const RecipeList = ({ loading, recipes, page, onPageChange }: Props) => {
   const isMobile = useMobileQuery();
 
-  const handleChange = (event: any, value: number) => {
-    setPage(value);
+  const handleChange = (_: any, value: number) => {
+    onPageChange(value);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
-  useEffect(() => {
-    setPage(1);
-  }, [recipes]);
 
   const pageRecipes = recipes.slice((page - 1) * 30, page * 30);
 
@@ -73,7 +70,17 @@ export const RecipeList = ({ loading, recipes }: Props) => {
         ))}
       </Grid>
       {Math.ceil(recipes.length / 30) > 1 && (
-        <Box sx={{ position: "sticky", bottom: 16, width: "100%", display: "flex", justifyContent: "center", zIndex: 10, pointerEvents: "none" }}>
+        <Box
+          sx={{
+            position: "sticky",
+            bottom: 16,
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            zIndex: 10,
+            pointerEvents: "none",
+          }}
+        >
           <Box
             sx={{
               bgcolor: "background.paper",

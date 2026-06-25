@@ -19,7 +19,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { grey } from "@mui/material/colors";
 import { getLocalRecipes, storeLocalRecipes } from "../Shared/AppBehaviors";
 
-
 export const Home = () => {
   const [recipes, setRecipes] = useState<IRecipe[]>(getLocalRecipes());
   const [filteredRecipes, setFilteredRecipes] = useState<IRecipe[]>([]);
@@ -29,6 +28,10 @@ export const Home = () => {
   const [selectedFilters, setSelectedFilters] = useState(emptyFilters);
   const [searchTerm, setSearchTerm] = useState("");
   const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [page, setPage] = useState<number>(
+    () => (location.state as any)?.page ?? 1,
+  );
+
   useEffect(() => {
     RecipeAPI.getAllRecipes().then((recipes) => {
       storeLocalRecipes(recipes);
@@ -36,6 +39,7 @@ export const Home = () => {
       setFilteredRecipes(recipes);
       setLoading(false);
       if (location.state) {
+        setPage((location.state as any).page ?? 1);
         setSelectedFilters(location.state as any);
         setSearchTerm((location.state as any).debouncedSearchTerm);
         if (
@@ -54,17 +58,21 @@ export const Home = () => {
   useEffect(() => {
     const newFilteredRecipes = RecipeTransform.filterRecipes(
       recipes,
-      selectedFilters
+      selectedFilters,
     );
-    if (JSON.stringify(filteredRecipes) !== JSON.stringify(newFilteredRecipes)) {
+    if (
+      JSON.stringify(filteredRecipes) !== JSON.stringify(newFilteredRecipes)
+    ) {
       setFilteredRecipes(newFilteredRecipes);
     }
     if (!loading) {
-      navigate("/all", { state: selectedFilters });
+      navigate("/all", { state: { ...selectedFilters, page } });
     }
-  }, [selectedFilters, recipes]);
+  }, [selectedFilters, recipes, page]);
 
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   const setDebouncedSearchTerm = useCallback((debouncedSearchTerm: string) => {
     clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(() => {
@@ -76,17 +84,26 @@ export const Home = () => {
   }, []);
 
   const handleChangeInput = (event: ChangeEvent<HTMLInputElement>) => {
+    setPage(1);
     setSearchTerm(event.target.value);
     setDebouncedSearchTerm(event.target.value);
   };
 
   const clearInput = () => {
+    setPage(1);
     setSearchTerm("");
     setDebouncedSearchTerm("");
     setSelectedFilters(emptyFilters);
   };
 
-  const isPristine = !searchTerm && JSON.stringify(selectedFilters) === JSON.stringify(emptyFilters);
+  const handleSetSelectedFilters: typeof setSelectedFilters = (value) => {
+    setPage(1);
+    setSelectedFilters(value);
+  };
+
+  const isPristine =
+    !searchTerm &&
+    JSON.stringify(selectedFilters) === JSON.stringify(emptyFilters);
 
   return (
     <>
@@ -117,7 +134,8 @@ export const Home = () => {
             backgroundColor: (theme) =>
               theme.palette.mode === "dark" ? grey[800] : grey[50],
             px: 1,
-            transition: "border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease",
+            transition:
+              "border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease",
             "&:hover": {
               backgroundColor: (theme) =>
                 theme.palette.mode === "dark" ? grey[700] : grey[100],
@@ -129,7 +147,9 @@ export const Home = () => {
             },
           }}
         >
-          <Search sx={{ color: "text.disabled", mr: 0.5, fontSize: "1.2rem" }} />
+          <Search
+            sx={{ color: "text.disabled", mr: 0.5, fontSize: "1.2rem" }}
+          />
           <InputBase
             sx={{ flex: 1, fontSize: "0.95rem" }}
             placeholder="Search recipes…"
@@ -153,10 +173,15 @@ export const Home = () => {
         <AdvancedFilters
           expanded={filtersExpanded}
           selectedFilters={selectedFilters}
-          setSelectedFilters={setSelectedFilters}
+          setSelectedFilters={handleSetSelectedFilters}
         />
       </Paper>
-      <RecipeList loading={!recipes.length} recipes={filteredRecipes} />
+      <RecipeList
+        loading={!recipes.length}
+        recipes={filteredRecipes}
+        page={page}
+        onPageChange={setPage}
+      />
     </>
   );
 };
