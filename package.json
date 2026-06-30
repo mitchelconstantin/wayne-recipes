@@ -38,7 +38,7 @@
     "typescript": "^6.0.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.0",
+    "@babel/core": "^7.29.6",
     "@types/jest": "^30.0.0",
     "@types/preval.macro": "^3.0.0",
     "@types/react": "^19.0.0",
