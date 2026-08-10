@@ -18,7 +18,7 @@
     "@netlify/functions": "^5.1.5",
     "@supabase/supabase-js": "^2.101.1",
     "@types/node": "^25.5.0",
-    "axios": "^1.14.0",
+    "axios": "^1.16.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.9.0",
     "clsx": "^2.1.1",
